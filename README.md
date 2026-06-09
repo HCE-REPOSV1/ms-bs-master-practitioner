@@ -323,20 +323,62 @@ BFF Negocio (Lógica de negocio)
 - `PUT    /LegacySyncLogs/:id` — Actualizar
 - `DELETE /LegacySyncLogs/:id` — Eliminar
 
-## Instalación
+## Cómo ejecutar
+
+### Local sin Docker
+
+Requiere acceso a SQL Server en `DB_HOST`. Si corre en tu máquina, usar `DB_HOST=localhost` en `.env`.
 
 ```bash
 npm install
-cp .env.example .env
-# Editar .env con tus valores reales
+# Copiar .env.example a .env y completar los valores
 npm run start:dev
 ```
 
-## Docker
+### Local con Docker
+
+Usa `docker-compose.dev.yml`, que lee el `.env` local. Si SQL Server corre en tu máquina, usar `DB_HOST=host.docker.internal`:
 
 ```bash
-docker build -t ms-bs-practitioner-service .
-docker run -p 3000:3000 --env-file .env ms-bs-practitioner-service
+docker compose -f docker-compose.dev.yml build
+docker compose -f docker-compose.dev.yml up -d
+
+# O build + up en un solo comando:
+docker compose -f docker-compose.dev.yml up -d --build
+
+# Para bajar:
+docker compose -f docker-compose.dev.yml down
+```
+
+### Producción
+
+El `docker-compose.yml` lee los secretos desde Vault al arrancar. No se necesita `.env` en el servidor.
+
+**Requisito:** Vault corriendo en `192.168.42.44:8200` (ver [HCE-vault-config](../HCE-vault-config/README.md)).
+
+```bash
+# El token está en HCE-vault-config/.env como TOKEN_PRACTITIONER_SERVICE
+export VAULT_TOKEN=hvs.xxxx
+
+docker compose down
+docker compose build
+docker compose up -d
+```
+
+Al arrancar, `entrypoint.sh` obtiene `DB_PASS`, `DB_HOST`, `KAFKA_BROKER` y el resto de Vault. El app no sabe que existe Vault.
+
+Con GitHub Actions el token se pasa como variable de entorno desde GitHub Secrets (`TOKEN_PRACTITIONER_SERVICE`).
+
+---
+
+## Scripts disponibles
+
+```bash
+npm run start:dev   # desarrollo con hot-reload
+npm run build       # compilar TypeScript
+npm run start:prod  # ejecutar build
+npm run test        # tests unitarios
+npm run test:cov    # cobertura
 ```
 
 ## Swagger UI

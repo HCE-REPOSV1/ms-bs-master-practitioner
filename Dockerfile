@@ -16,5 +16,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
 EXPOSE 3000
-CMD ["node", "dist/main"]
+CMD ["sh", "entrypoint.sh"]

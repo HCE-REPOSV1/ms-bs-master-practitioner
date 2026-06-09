@@ -1,0 +1,15 @@
+# docker-compose.dev.yml — bs-practitioner-service (desarrollo local con Docker)
+# Uso: docker compose -f docker-compose.dev.yml up -d
+#
+# Lee las variables directamente del .env local.
+# Para desarrollo sin Docker usa: npm run start:dev
+
+services:
+  ms-bs-practitioner-service:
+    build: .
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    env_file: .env
+    environment:
+      NODE_ENV: development
+    restart: unless-stopped
