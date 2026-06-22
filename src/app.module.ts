@@ -45,11 +45,12 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { KafkaLoggerModule } from './logger/kafka-logger.module';
 import { AuditInterceptor } from './logger/audit.interceptor';
 
+import { HealthModule } from './health/health.module';
 @Module({
-  imports: [
+  imports: [HealthModule, 
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [HealthModule, ConfigModule],
       useFactory: (cfg: ConfigService) => dbConfig(cfg),
       inject: [ConfigService],
     }),

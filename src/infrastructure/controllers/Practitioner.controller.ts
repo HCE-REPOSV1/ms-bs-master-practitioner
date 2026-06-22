@@ -2,8 +2,8 @@ import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PractitionerTypeOrmRepository } from '../persistence/Practitioner.typeorm.repository';
 
-@ApiTags('practitioners')
-@Controller('practitioners')
+@ApiTags('practitioner')
+@Controller('practitioner')
 export class PractitionerController {
   constructor(private readonly repo: PractitionerTypeOrmRepository) {}
 

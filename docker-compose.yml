@@ -6,17 +6,23 @@
 # El entrypoint.sh carga el resto desde Vault al arrancar.
 
 services:
-  ms-bs-practitioner-service:
+  ms-bs-master-practitioner:
     build: .
     ports:
       - "10405:10405"
+      - "20405:20405"
     env_file:
       - .env.docker
     environment:
       NODE_ENV: production
       PORT: "10405"
       VAULT_ADDR: "http://host.docker.internal:8200"
-      VAULT_SECRET_PATH: "hce/nestjs/practitioner-service"
+      VAULT_SECRET_PATH: "hce/nestjs/bs-master-practitioner"
+      USE_SSL: "true"
+      CERT_PATH: "/proyectos/certs"
+      SSL_PORT: "20405"
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

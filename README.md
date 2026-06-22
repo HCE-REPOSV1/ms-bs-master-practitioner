@@ -1,4 +1,4 @@
-# ms-bs-practitioner-service
+# ms-ms-bs-master-practitioner
 
 > Generado por **Jarvis Platform** — 23/4/2026
 
