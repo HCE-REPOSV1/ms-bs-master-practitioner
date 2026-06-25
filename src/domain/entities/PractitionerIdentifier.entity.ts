@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity({ schema: 'fhir', name: 'practitioner_identifier' })
+@Entity({ schema: 'practitioner', name: 'practitioner_identifier' })
 export class PractitionerIdentifier {
   @PrimaryGeneratedColumn({ name: 'identifier_id' })
   identifier_id!: number;

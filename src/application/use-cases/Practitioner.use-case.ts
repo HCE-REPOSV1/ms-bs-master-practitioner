@@ -4,7 +4,12 @@ import { PractitionerRepository } from '../../domain/repositories/Practitioner.r
 export class PractitionerUseCase {
   constructor(private readonly repo: PractitionerRepository) {}
   findAll(): Promise<Practitioner[]> { return this.repo.findAll(); }
-  findById(id: string): Promise<Practitioner | null> { return this.repo.findById(id); }
+  findById(id: number): Promise<Practitioner | null> { return this.repo.findById(id); }
   create(data: Partial<Practitioner>): Promise<Practitioner> { return this.repo.save(data as Practitioner); }
-  delete(id: string): Promise<void> { return this.repo.delete(id); }
+  update(id: number, data: Partial<Practitioner>): Promise<Practitioner> {
+    return this.repo.save({ ...data, practitioner_id: id } as Practitioner);
+  }
+  setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null> {
+    return this.repo.setActive(id, isActive, userModify);
+  }
 }

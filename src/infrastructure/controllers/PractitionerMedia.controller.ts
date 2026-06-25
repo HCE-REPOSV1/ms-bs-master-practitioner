@@ -1,12 +1,54 @@
-// BFF Negocio — aplica reglas de negocio
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Param, Body, NotFoundException, ParseIntPipe } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { PractitionerMediaUseCase } from '../../application/use-cases/PractitionerMedia.use-case';
+import { PractitionerMediaTypeOrmRepository } from '../persistence/PractitionerMedia.typeorm.repository';
 import { CreatePractitionerMediaDto } from '../../dto/create-PractitionerMedia.dto';
+import { UpdatePractitionerMediaDto } from '../../dto/update-PractitionerMedia.dto';
+import { SetActiveDto } from '../../dto/set-active.dto';
 
-@Controller('PractitionerMedias')
+// Nota: el archivo binario en si (upload/descarga/streaming) lo sirve ms-tch-media.
+// Este controller administra solo la metadata de practitioner.practitioner_media.
+@ApiTags('practitioner-media')
+@Controller('practitioner/media')
 export class PractitionerMediaController {
-  @Get() findAll() { return []; }
-  @Get(':id') findOne(@Param('id') id: string) { return { id }; }
-  @Post() create(@Body() dto: CreatePractitionerMediaDto) { return dto; }
-  @Put(':id') update(@Param('id') id: string, @Body() dto: Partial<CreatePractitionerMediaDto>) { return { id, ...dto }; }
-  @Delete(':id') @HttpCode(204) remove(@Param('id') _id: string) {}
+  private readonly useCase: PractitionerMediaUseCase;
+
+  constructor(private readonly repo: PractitionerMediaTypeOrmRepository) {
+    this.useCase = new PractitionerMediaUseCase(repo);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Buscar toda la metadata de media activa' })
+  findAll() {
+    return this.useCase.findAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar metadata de media activa por id' })
+  @ApiParam({ name: 'id', type: Number })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.useCase.findById(id);
+    if (!result) throw new NotFoundException(`Media no encontrado: ${id}`);
+    return result;
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Registrar metadata de un archivo de practitioner' })
+  create(@Body() dto: CreatePractitionerMediaDto) {
+    return this.useCase.create(dto as any);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Actualizar metadata de un archivo de practitioner' })
+  @ApiParam({ name: 'id', type: Number })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerMediaDto) {
+    return this.useCase.update(id, { ...dto, date_modify: new Date() } as any);
+  }
+
+  @Patch(':id/estado')
+  @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de un archivo' })
+  @ApiParam({ name: 'id', type: Number })
+  setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    return this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+  }
 }

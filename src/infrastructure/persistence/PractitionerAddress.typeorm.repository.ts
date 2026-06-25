@@ -11,8 +11,14 @@ export class PractitionerAddressTypeOrmRepository implements PractitionerAddress
     private readonly repo: Repository<PractitionerAddress>,
   ) {}
 
-  findAll(): Promise<PractitionerAddress[]> { return this.repo.find(); }
-  findById(id: string): Promise<PractitionerAddress | null> { return this.repo.findOne({ where: { id } as any }); }
+  findAll(): Promise<PractitionerAddress[]> { return this.repo.find({ where: { is_active: true } as any }); }
+  findById(id: number): Promise<PractitionerAddress | null> {
+    return this.repo.findOne({ where: { address_id: id, is_active: true } as any });
+  }
   save(entity: PractitionerAddress): Promise<PractitionerAddress> { return this.repo.save(entity); }
-  async delete(id: string): Promise<void> { await this.repo.delete(id); }
+
+  async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerAddress | null> {
+    await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
+    return this.repo.findOne({ where: { address_id: id } as any });
+  }
 }

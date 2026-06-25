@@ -113,9 +113,9 @@ export interface AddressResult {
 
 export interface PractitionerRepository {
   save(entity: Practitioner): Promise<Practitioner>;
-  findById(id: string): Promise<Practitioner | null>;
+  findById(id: number): Promise<Practitioner | null>;
   findAll(): Promise<Practitioner[]>;
-  delete(id: string): Promise<void>;
+  setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null>;
   findByAdUsername(adUsername: string): Promise<PractitionerByAdUsernameResult | null>;
   findByUuid(practitionerUuid: string): Promise<PractitionerByUuidResult | null>;
   findBySpeciality(specialityId?: number, localName?: string): Promise<PractitionerBySpecialityResult[]>;

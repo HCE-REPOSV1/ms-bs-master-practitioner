@@ -1,5 +1,6 @@
-import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsBoolean, IsInt, Min, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreatePractitionerDto {
   @ApiProperty({ description: 'AD username del medico (viene del token AD)', maxLength: 100 })
@@ -49,6 +50,27 @@ export class CreatePractitionerDto {
   @ApiPropertyOptional({ maxLength: 50 })
   @IsOptional() @IsString() @MaxLength(50)
   legacy_practitioner_id?: string;
+
+  @ApiPropertyOptional({ description: 'FK logica a catalog.practitioner_status' })
+  @IsOptional() @IsInt() @Min(1)
+  @Type(() => Number)
+  practitioner_status_id?: number;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional() @IsBoolean()
+  is_physician?: boolean;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional() @IsBoolean()
+  is_nurse?: boolean;
+
+  @ApiPropertyOptional({ maxLength: 20, description: 'Codigo del sistema de origen (sync legacy)' })
+  @IsOptional() @IsString() @MaxLength(20)
+  source_system_code?: string;
+
+  @ApiPropertyOptional({ description: 'Fecha/hora de la ultima sincronizacion con el sistema legacy' })
+  @IsOptional() @IsDateString()
+  last_sync_datetime?: string;
 
   @ApiProperty({ maxLength: 100, description: 'Usuario que crea el registro' })
   @IsString() @IsNotEmpty() @MaxLength(100)

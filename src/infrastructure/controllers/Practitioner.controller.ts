@@ -1,11 +1,54 @@
-import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Param, Query, Body, NotFoundException, ParseIntPipe } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PractitionerTypeOrmRepository } from '../persistence/Practitioner.typeorm.repository';
+import { PractitionerUseCase } from '../../application/use-cases/Practitioner.use-case';
+import { CreatePractitionerDto } from '../../dto/create-Practitioner.dto';
+import { UpdatePractitionerDto } from '../../dto/update-Practitioner.dto';
+import { SetActiveDto } from '../../dto/set-active.dto';
 
 @ApiTags('practitioner')
 @Controller('practitioner')
 export class PractitionerController {
-  constructor(private readonly repo: PractitionerTypeOrmRepository) {}
+  private readonly useCase: PractitionerUseCase;
+
+  constructor(private readonly repo: PractitionerTypeOrmRepository) {
+    this.useCase = new PractitionerUseCase(repo);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Buscar todos los practitioners activos' })
+  findAll() {
+    return this.useCase.findAll();
+  }
+
+  @Get('by-id/:id')
+  @ApiOperation({ summary: 'Buscar practitioner activo por id numerico interno' })
+  @ApiParam({ name: 'id', type: Number })
+  async findOneById(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.useCase.findById(id);
+    if (!result) throw new NotFoundException(`Practitioner no encontrado: ${id}`);
+    return result;
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Crear practitioner' })
+  create(@Body() dto: CreatePractitionerDto) {
+    return this.useCase.create(dto as any);
+  }
+
+  @Put('by-id/:id')
+  @ApiOperation({ summary: 'Actualizar practitioner' })
+  @ApiParam({ name: 'id', type: Number })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerDto) {
+    return this.useCase.update(id, { ...dto, date_modify: new Date() } as any);
+  }
+
+  @Patch('by-id/:id/estado')
+  @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de un practitioner' })
+  @ApiParam({ name: 'id', type: Number })
+  setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    return this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+  }
 
   @Get('by-username/:adUsername')
   @ApiOperation({ summary: 'Obtener practitioner por AD username (Home login)' })

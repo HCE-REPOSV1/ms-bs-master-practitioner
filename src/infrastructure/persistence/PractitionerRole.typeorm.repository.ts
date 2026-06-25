@@ -11,8 +11,14 @@ export class PractitionerRoleTypeOrmRepository implements PractitionerRoleReposi
     private readonly repo: Repository<PractitionerRole>,
   ) {}
 
-  findAll(): Promise<PractitionerRole[]> { return this.repo.find(); }
-  findById(id: string): Promise<PractitionerRole | null> { return this.repo.findOne({ where: { id } as any }); }
+  findAll(): Promise<PractitionerRole[]> { return this.repo.find({ where: { is_active: true } as any }); }
+  findById(id: number): Promise<PractitionerRole | null> {
+    return this.repo.findOne({ where: { role_id: id, is_active: true } as any });
+  }
   save(entity: PractitionerRole): Promise<PractitionerRole> { return this.repo.save(entity); }
-  async delete(id: string): Promise<void> { await this.repo.delete(id); }
+
+  async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerRole | null> {
+    await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
+    return this.repo.findOne({ where: { role_id: id } as any });
+  }
 }

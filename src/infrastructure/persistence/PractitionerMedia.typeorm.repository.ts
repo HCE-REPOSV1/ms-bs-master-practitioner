@@ -11,8 +11,14 @@ export class PractitionerMediaTypeOrmRepository implements PractitionerMediaRepo
     private readonly repo: Repository<PractitionerMedia>,
   ) {}
 
-  findAll(): Promise<PractitionerMedia[]> { return this.repo.find(); }
-  findById(id: string): Promise<PractitionerMedia | null> { return this.repo.findOne({ where: { id } as any }); }
+  findAll(): Promise<PractitionerMedia[]> { return this.repo.find({ where: { is_active: true } as any }); }
+  findById(id: number): Promise<PractitionerMedia | null> {
+    return this.repo.findOne({ where: { media_id: id, is_active: true } as any });
+  }
   save(entity: PractitionerMedia): Promise<PractitionerMedia> { return this.repo.save(entity); }
-  async delete(id: string): Promise<void> { await this.repo.delete(id); }
+
+  async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerMedia | null> {
+    await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
+    return this.repo.findOne({ where: { media_id: id } as any });
+  }
 }

@@ -2,7 +2,7 @@ import { PractitionerContactPoint } from '../entities/PractitionerContactPoint.e
 
 export interface PractitionerContactPointRepository {
   save(entity: PractitionerContactPoint): Promise<PractitionerContactPoint>;
-  findById(id: string): Promise<PractitionerContactPoint | null>;
+  findById(id: number): Promise<PractitionerContactPoint | null>;
   findAll(): Promise<PractitionerContactPoint[]>;
-  delete(id: string): Promise<void>;
+  setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerContactPoint | null>;
 }

@@ -18,10 +18,16 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(): Promise<Practitioner[]> { return this.repo.find(); }
-  findById(id: string): Promise<Practitioner | null> { return this.repo.findOne({ where: { id } as any }); }
+  findAll(): Promise<Practitioner[]> { return this.repo.find({ where: { is_active: true } as any }); }
+  findById(id: number): Promise<Practitioner | null> {
+    return this.repo.findOne({ where: { practitioner_id: id, is_active: true } as any });
+  }
   save(entity: Practitioner): Promise<Practitioner> { return this.repo.save(entity); }
-  async delete(id: string): Promise<void> { await this.repo.delete(id); }
+
+  async setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null> {
+    await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
+    return this.repo.findOne({ where: { practitioner_id: id } as any });
+  }
 
   async findByAdUsername(adUsername: string): Promise<PractitionerByAdUsernameResult | null> {
     const rows = await this.dataSource.query<PractitionerByAdUsernameResult[]>(`
@@ -56,13 +62,13 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
           m.media_file_name           AS photo_file_name,
           m.content_type              AS photo_content_type,
           fs.base_url + m.relative_path AS photo_url
-      FROM fhir.practitioner              p
-      INNER JOIN fhir.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
-      INNER JOIN fhir.speciality          s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
-      INNER JOIN fhir.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
-      LEFT JOIN  fhir.location            l  ON l.location_id      = pr.location_id    AND l.is_active  = 1
-      LEFT JOIN  fhir.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
-      LEFT JOIN  cfg.file_server_config   fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
+      FROM practitioner.practitioner              p
+      INNER JOIN practitioner.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
+      INNER JOIN catalog.speciality               s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
+      INNER JOIN organisation.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
+      LEFT JOIN  organisation.location            l  ON l.location_id      = pr.location_id    AND l.is_active  = 1
+      LEFT JOIN  practitioner.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
+      LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
       WHERE p.ad_username = @0 AND p.is_active = 1
     `, [adUsername]);
     return rows[0] ?? null;
@@ -94,12 +100,12 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
           m.media_file_name       AS photo_file_name,
           m.content_type          AS photo_content_type,
           fs.base_url + m.relative_path AS photo_url
-      FROM fhir.practitioner              p
-      INNER JOIN fhir.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
-      INNER JOIN fhir.speciality          s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
-      INNER JOIN fhir.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
-      LEFT JOIN  fhir.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
-      LEFT JOIN  cfg.file_server_config   fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
+      FROM practitioner.practitioner              p
+      INNER JOIN practitioner.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
+      INNER JOIN catalog.speciality               s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
+      INNER JOIN organisation.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
+      LEFT JOIN  practitioner.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
+      LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
       WHERE p.practitioner_uuid = @0 AND p.is_active = 1
     `, [practitionerUuid]);
     return rows[0] ?? null;
@@ -123,12 +129,12 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
           pr.period_end           AS role_period_end,
           m.media_file_name       AS photo_file_name,
           fs.base_url + m.relative_path AS photo_url
-      FROM fhir.practitioner              p
-      INNER JOIN fhir.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
-      INNER JOIN fhir.speciality          s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
-      INNER JOIN fhir.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
-      LEFT JOIN  fhir.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
-      LEFT JOIN  cfg.file_server_config   fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
+      FROM practitioner.practitioner              p
+      INNER JOIN practitioner.practitioner_role   pr ON pr.practitioner_id = p.practitioner_id AND pr.is_active = 1
+      INNER JOIN catalog.speciality               s  ON s.speciality_id    = pr.speciality_id  AND s.is_active  = 1
+      INNER JOIN organisation.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
+      LEFT JOIN  practitioner.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
+      LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
       WHERE p.is_active = 1 AND p.active_fhir = 1
         AND (@0 IS NULL OR s.speciality_id = @0)
         AND (@1 IS NULL OR s.local_name LIKE '%' + @1 + '%')
@@ -149,8 +155,8 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
             cp.contact_rank,
             cp.period_start AS contact_period_start,
             cp.period_end   AS contact_period_end
-        FROM fhir.practitioner p
-        INNER JOIN fhir.practitioner_contact_point cp
+        FROM practitioner.practitioner p
+        INNER JOIN practitioner.practitioner_contact_point cp
                ON cp.practitioner_id = p.practitioner_id AND cp.is_active = 1
         WHERE p.practitioner_uuid = @0 AND p.is_active = 1
         ORDER BY cp.contact_system, cp.contact_rank
@@ -171,8 +177,8 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
             a.address_text,
             a.period_start AS address_period_start,
             a.period_end   AS address_period_end
-        FROM fhir.practitioner p
-        INNER JOIN fhir.practitioner_address a
+        FROM practitioner.practitioner p
+        INNER JOIN practitioner.practitioner_address a
                ON a.practitioner_id = p.practitioner_id AND a.is_active = 1
         WHERE p.practitioner_uuid = @0 AND p.is_active = 1
         ORDER BY a.address_use

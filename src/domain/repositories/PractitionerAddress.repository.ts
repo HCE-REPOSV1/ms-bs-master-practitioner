@@ -2,7 +2,7 @@ import { PractitionerAddress } from '../entities/PractitionerAddress.entity';
 
 export interface PractitionerAddressRepository {
   save(entity: PractitionerAddress): Promise<PractitionerAddress>;
-  findById(id: string): Promise<PractitionerAddress | null>;
+  findById(id: number): Promise<PractitionerAddress | null>;
   findAll(): Promise<PractitionerAddress[]>;
-  delete(id: string): Promise<void>;
+  setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerAddress | null>;
 }
