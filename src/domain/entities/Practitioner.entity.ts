@@ -61,8 +61,8 @@ export class Practitioner {
   @Column({ name: 'source_system_code', length: 20, nullable: true })
   source_system_code?: string;
 
-  @Column({ name: 'last_sync_datetime', type: 'datetime2', nullable: true })
-  last_sync_datetime?: Date;
+  @Column({ name: 'last_integration_datetime', type: 'datetime2', nullable: true })
+  last_integration_datetime?: Date;
 
   @Column({ name: 'user_create', type: 'nvarchar', length: 100 })
   user_create!: string;

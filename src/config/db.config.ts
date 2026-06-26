@@ -26,7 +26,7 @@ export function dbConfig(cfg: ConfigService): TypeOrmModuleOptions {
       connectTimeout:         30000,
       instanceName: cfg.get<string>('DB_INSTANCE', 'INST01'),
     },
-    pool: { max: 25, min: 0 },
+    pool: { max: cfg.get('NODE_ENV') === 'production' ? 25 : 5, min: 0 },
     autoLoadEntities: true,
     synchronize: false,
     logging: cfg.get('NODE_ENV') === 'development',

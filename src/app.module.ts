@@ -31,6 +31,7 @@ import { PractitionerSpecialtyMapTypeOrmRepository } from './infrastructure/pers
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { KafkaLoggerModule } from './logger/kafka-logger.module';
 import { AuditInterceptor } from './logger/audit.interceptor';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 import { HealthModule } from './health/health.module';
 @Module({
@@ -45,7 +46,18 @@ import { HealthModule } from './health/health.module';
 
     KafkaLoggerModule,
   ],
-  controllers: [PractitionerController, PractitionerRoleController, PractitionerAddressController, PractitionerContactPointController, PractitionerMediaController, PractitionerIdentifierController, PractitionerServiceController, PractitionerSpecialtyMapController],
+  // ORDEN CRÍTICO: los 7 sub-recursos deben registrarse ANTES que PractitionerController
+  // porque este tiene @Get(':uuid') que matchea cualquier string de un segmento bajo /practitioner/.
+  controllers: [
+    PractitionerRoleController,
+    PractitionerAddressController,
+    PractitionerContactPointController,
+    PractitionerMediaController,
+    PractitionerIdentifierController,
+    PractitionerServiceController,
+    PractitionerSpecialtyMapController,
+    PractitionerController,
+  ],
   providers: [
     PractitionerTypeOrmRepository,
     PractitionerRoleTypeOrmRepository,
@@ -56,6 +68,7 @@ import { HealthModule } from './health/health.module';
     PractitionerServiceTypeOrmRepository,
     PractitionerSpecialtyMapTypeOrmRepository,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],
 })
 export class AppModule {}

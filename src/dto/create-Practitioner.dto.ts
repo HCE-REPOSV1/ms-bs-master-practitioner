@@ -70,7 +70,7 @@ export class CreatePractitionerDto {
 
   @ApiPropertyOptional({ description: 'Fecha/hora de la ultima sincronizacion con el sistema legacy' })
   @IsOptional() @IsDateString()
-  last_sync_datetime?: string;
+  last_integration_datetime?: string;
 
   @ApiProperty({ maxLength: 100, description: 'Usuario que crea el registro' })
   @IsString() @IsNotEmpty() @MaxLength(100)
