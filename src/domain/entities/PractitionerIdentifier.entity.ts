@@ -12,7 +12,7 @@ export class PractitionerIdentifier {
   @Column({ name: 'identifier_use', length: 10, default: 'official' })
   identifier_use!: string;
 
-  // FHIR: Identifier.type.code — 'MD' (CMP) | 'NI' (DNI) | 'PPN' (Pasaporte)
+  // Código interno del catálogo: 'DN' | 'CMP' | 'RNE'  (CHECK constraint en BD)
   @Column({ name: 'identifier_type_code', length: 20 })
   identifier_type_code!: string;
 
