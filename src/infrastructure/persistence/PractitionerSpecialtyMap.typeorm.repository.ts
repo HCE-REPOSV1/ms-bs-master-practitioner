@@ -17,6 +17,11 @@ export class PractitionerSpecialtyMapTypeOrmRepository implements PractitionerSp
   }
   save(entity: PractitionerSpecialtyMap): Promise<PractitionerSpecialtyMap> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<PractitionerSpecialtyMap>): Promise<PractitionerSpecialtyMap | null> {
+    await this.repo.update({ practitioner_specialty_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerSpecialtyMap | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { practitioner_specialty_id: id } as any });

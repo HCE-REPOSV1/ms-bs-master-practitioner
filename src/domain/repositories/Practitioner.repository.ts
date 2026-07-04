@@ -115,6 +115,7 @@ export interface PractitionerRepository {
   save(entity: Practitioner): Promise<Practitioner>;
   findById(id: number): Promise<Practitioner | null>;
   findAll(): Promise<Practitioner[]>;
+  update(id: number, data: Partial<Practitioner>): Promise<Practitioner | null>;
   setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null>;
   findByAdUsername(adUsername: string): Promise<PractitionerByAdUsernameResult | null>;
   findByUuid(practitionerUuid: string): Promise<PractitionerByUuidResult | null>;

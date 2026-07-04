@@ -6,8 +6,8 @@ export class PractitionerSpecialtyMapUseCase {
   findAll(): Promise<PractitionerSpecialtyMap[]> { return this.repo.findAll(); }
   findById(id: number): Promise<PractitionerSpecialtyMap | null> { return this.repo.findById(id); }
   create(data: Partial<PractitionerSpecialtyMap>): Promise<PractitionerSpecialtyMap> { return this.repo.save(data as PractitionerSpecialtyMap); }
-  update(id: number, data: Partial<PractitionerSpecialtyMap>): Promise<PractitionerSpecialtyMap> {
-    return this.repo.save({ ...data, practitioner_specialty_id: id } as PractitionerSpecialtyMap);
+  update(id: number, data: Partial<PractitionerSpecialtyMap>): Promise<PractitionerSpecialtyMap | null> {
+    return this.repo.update(id, data);
   }
   setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerSpecialtyMap | null> {
     return this.repo.setActive(id, isActive, userModify);

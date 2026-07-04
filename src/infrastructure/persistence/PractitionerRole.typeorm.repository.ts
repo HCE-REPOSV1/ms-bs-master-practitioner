@@ -17,6 +17,11 @@ export class PractitionerRoleTypeOrmRepository implements PractitionerRoleReposi
   }
   save(entity: PractitionerRole): Promise<PractitionerRole> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<PractitionerRole>): Promise<PractitionerRole | null> {
+    await this.repo.update({ role_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerRole | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { role_id: id } as any });

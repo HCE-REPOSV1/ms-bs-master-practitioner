@@ -24,6 +24,11 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
   }
   save(entity: Practitioner): Promise<Practitioner> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<Practitioner>): Promise<Practitioner | null> {
+    await this.repo.update({ practitioner_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { practitioner_id: id } as any });

@@ -41,14 +41,18 @@ export class PractitionerMediaController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar metadata de un archivo de practitioner' })
   @ApiParam({ name: 'id', type: Number })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerMediaDto) {
-    return this.useCase.update(id, { ...dto, date_modify: new Date() } as any);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerMediaDto) {
+    const result = await this.useCase.update(id, { ...dto, date_modify: new Date() } as any);
+    if (!result) throw new NotFoundException(`Media no encontrado: ${id}`);
+    return result;
   }
 
   @Patch(':id/estado')
   @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de un archivo' })
   @ApiParam({ name: 'id', type: Number })
-  setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
-    return this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+  async setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    const result = await this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+    if (!result) throw new NotFoundException(`Media no encontrado: ${id}`);
+    return result;
   }
 }

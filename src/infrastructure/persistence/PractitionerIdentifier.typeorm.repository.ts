@@ -17,6 +17,11 @@ export class PractitionerIdentifierTypeOrmRepository implements PractitionerIden
   }
   save(entity: PractitionerIdentifier): Promise<PractitionerIdentifier> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<PractitionerIdentifier>): Promise<PractitionerIdentifier | null> {
+    await this.repo.update({ identifier_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerIdentifier | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { identifier_id: id } as any });

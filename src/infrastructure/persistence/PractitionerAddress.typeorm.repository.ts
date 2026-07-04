@@ -17,6 +17,11 @@ export class PractitionerAddressTypeOrmRepository implements PractitionerAddress
   }
   save(entity: PractitionerAddress): Promise<PractitionerAddress> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<PractitionerAddress>): Promise<PractitionerAddress | null> {
+    await this.repo.update({ address_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerAddress | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { address_id: id } as any });

@@ -17,6 +17,11 @@ export class PractitionerMediaTypeOrmRepository implements PractitionerMediaRepo
   }
   save(entity: PractitionerMedia): Promise<PractitionerMedia> { return this.repo.save(entity); }
 
+  async update(id: number, data: Partial<PractitionerMedia>): Promise<PractitionerMedia | null> {
+    await this.repo.update({ media_id: id, is_active: true } as any, data as any);
+    return this.findById(id);
+  }
+
   async setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerMedia | null> {
     await this.repo.update(id, { is_active: isActive, user_modify: userModify, date_modify: new Date() } as any);
     return this.repo.findOne({ where: { media_id: id } as any });

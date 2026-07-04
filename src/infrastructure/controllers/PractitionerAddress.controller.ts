@@ -39,14 +39,18 @@ export class PractitionerAddressController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar direccion de practitioner' })
   @ApiParam({ name: 'id', type: Number })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerAddressDto) {
-    return this.useCase.update(id, { ...dto, date_modify: new Date() });
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerAddressDto) {
+    const result = await this.useCase.update(id, { ...dto, date_modify: new Date() });
+    if (!result) throw new NotFoundException(`Direccion no encontrada: ${id}`);
+    return result;
   }
 
   @Patch(':id/estado')
   @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de una direccion' })
   @ApiParam({ name: 'id', type: Number })
-  setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
-    return this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+  async setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    const result = await this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+    if (!result) throw new NotFoundException(`Direccion no encontrada: ${id}`);
+    return result;
   }
 }

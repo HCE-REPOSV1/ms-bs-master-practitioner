@@ -6,8 +6,8 @@ export class PractitionerRoleUseCase {
   findAll(): Promise<PractitionerRole[]> { return this.repo.findAll(); }
   findById(id: number): Promise<PractitionerRole | null> { return this.repo.findById(id); }
   create(data: Partial<PractitionerRole>): Promise<PractitionerRole> { return this.repo.save(data as PractitionerRole); }
-  update(id: number, data: Partial<PractitionerRole>): Promise<PractitionerRole> {
-    return this.repo.save({ ...data, role_id: id } as PractitionerRole);
+  update(id: number, data: Partial<PractitionerRole>): Promise<PractitionerRole | null> {
+    return this.repo.update(id, data);
   }
   setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerRole | null> {
     return this.repo.setActive(id, isActive, userModify);

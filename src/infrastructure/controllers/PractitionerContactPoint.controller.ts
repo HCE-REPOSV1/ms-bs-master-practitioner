@@ -39,14 +39,18 @@ export class PractitionerContactPointController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar contacto de practitioner' })
   @ApiParam({ name: 'id', type: Number })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerContactPointDto) {
-    return this.useCase.update(id, { ...dto, date_modify: new Date() });
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerContactPointDto) {
+    const result = await this.useCase.update(id, { ...dto, date_modify: new Date() });
+    if (!result) throw new NotFoundException(`Contacto no encontrado: ${id}`);
+    return result;
   }
 
   @Patch(':id/estado')
   @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de un contacto' })
   @ApiParam({ name: 'id', type: Number })
-  setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
-    return this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+  async setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    const result = await this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+    if (!result) throw new NotFoundException(`Contacto no encontrado: ${id}`);
+    return result;
   }
 }
