@@ -8,10 +8,19 @@ services:
   ms-bs-practitioner-service:
     build: .
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "${PORT:-10405}:${PORT:-10405}"
+      - "${SSL_PORT:-20405}:${SSL_PORT:-20405}"
     env_file: .env
     environment:
       NODE_ENV: development
+    volumes:
+      # Certificado autofirmado de prueba (generado con openssl, nunca commiteado — ver .gitignore)
+      - ${CERTS_HOST_PATH:-../certs-dev}:/app/certs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+networks:
+  default:
+    name: hce-dev
+    external: true

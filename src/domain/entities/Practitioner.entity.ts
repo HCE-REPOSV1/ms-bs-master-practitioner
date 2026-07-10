@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity({ schema: 'fhir', name: 'practitioner' })
+@Entity({ schema: 'practitioner', name: 'practitioner' })
 export class Practitioner {
   @PrimaryGeneratedColumn({ name: 'practitioner_id' })
   practitioner_id!: number;
@@ -47,6 +47,22 @@ export class Practitioner {
 
   @Column({ name: 'legacy_practitioner_id', length: 50, nullable: true })
   legacy_practitioner_id?: string;
+
+  // FK LOGICA a catalog.practitioner_status — resuelta por aplicacion/eventos, no por el motor (cruza de dominio)
+  @Column({ name: 'practitioner_status_id', type: 'smallint', nullable: true })
+  practitioner_status_id?: number;
+
+  @Column({ name: 'is_physician', type: 'bit', default: false })
+  is_physician!: boolean;
+
+  @Column({ name: 'is_nurse', type: 'bit', default: false })
+  is_nurse!: boolean;
+
+  @Column({ name: 'source_system_code', length: 20, nullable: true })
+  source_system_code?: string;
+
+  @Column({ name: 'last_integration_datetime', type: 'datetime2', nullable: true })
+  last_integration_datetime?: Date;
 
   @Column({ name: 'user_create', type: 'nvarchar', length: 100 })
   user_create!: string;

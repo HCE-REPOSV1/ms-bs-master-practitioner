@@ -2,7 +2,8 @@ import { PractitionerMedia } from '../entities/PractitionerMedia.entity';
 
 export interface PractitionerMediaRepository {
   save(entity: PractitionerMedia): Promise<PractitionerMedia>;
-  findById(id: string): Promise<PractitionerMedia | null>;
+  findById(id: number): Promise<PractitionerMedia | null>;
   findAll(): Promise<PractitionerMedia[]>;
-  delete(id: string): Promise<void>;
+  update(id: number, data: Partial<PractitionerMedia>): Promise<PractitionerMedia | null>;
+  setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerMedia | null>;
 }

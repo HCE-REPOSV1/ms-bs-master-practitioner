@@ -2,8 +2,7 @@ import { NestFactory }    from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule }      from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import * as http  from 'http';
 import * as https from 'https';
 import { buildHttpsOptions } from './ssl/ssl-config.util';
@@ -11,8 +10,7 @@ import { buildHttpsOptions } from './ssl/ssl-config.util';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
-  app.useGlobalInterceptors(new ResponseInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // api/v{n}/<recurso> — versionado independiente del gateway que lo consuma.
   // health queda fuera del prefijo/versión para no romper el healthcheck de Docker.
@@ -22,7 +20,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('ms-bs-practitioner-service')
-      .setDescription('Generado por Jarvis Platform')
+      .setDescription('Generado por Platform Starter')
       .setVersion('1.0')
       .build();
     SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, config));

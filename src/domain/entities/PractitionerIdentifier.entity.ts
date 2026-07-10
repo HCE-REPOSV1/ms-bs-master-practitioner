@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity({ schema: 'fhir', name: 'practitioner_identifier' })
+@Entity({ schema: 'practitioner', name: 'practitioner_identifier' })
 export class PractitionerIdentifier {
   @PrimaryGeneratedColumn({ name: 'identifier_id' })
   identifier_id!: number;
@@ -12,7 +12,7 @@ export class PractitionerIdentifier {
   @Column({ name: 'identifier_use', length: 10, default: 'official' })
   identifier_use!: string;
 
-  // FHIR: Identifier.type.code — 'MD' (CMP) | 'NI' (DNI) | 'PPN' (Pasaporte)
+  // Código interno del catálogo: 'DN' | 'CMP' | 'RNE'  (CHECK constraint en BD)
   @Column({ name: 'identifier_type_code', length: 20 })
   identifier_type_code!: string;
 

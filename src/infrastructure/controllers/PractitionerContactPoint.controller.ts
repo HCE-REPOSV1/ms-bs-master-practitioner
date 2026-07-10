@@ -1,12 +1,56 @@
-// BFF Negocio — aplica reglas de negocio
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Param, Body, NotFoundException, ParseIntPipe } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { PractitionerContactPointUseCase } from '../../application/use-cases/PractitionerContactPoint.use-case';
+import { PractitionerContactPointTypeOrmRepository } from '../persistence/PractitionerContactPoint.typeorm.repository';
 import { CreatePractitionerContactPointDto } from '../../dto/create-PractitionerContactPoint.dto';
+import { UpdatePractitionerContactPointDto } from '../../dto/update-PractitionerContactPoint.dto';
+import { SetActiveDto } from '../../dto/set-active.dto';
 
-@Controller('PractitionerContactPoints')
+@ApiTags('practitioner-contact-points')
+@Controller('practitioner/contact-points')
 export class PractitionerContactPointController {
-  @Get() findAll() { return []; }
-  @Get(':id') findOne(@Param('id') id: string) { return { id }; }
-  @Post() create(@Body() dto: CreatePractitionerContactPointDto) { return dto; }
-  @Put(':id') update(@Param('id') id: string, @Body() dto: Partial<CreatePractitionerContactPointDto>) { return { id, ...dto }; }
-  @Delete(':id') @HttpCode(204) remove(@Param('id') _id: string) {}
+  private readonly useCase: PractitionerContactPointUseCase;
+
+  constructor(private readonly repo: PractitionerContactPointTypeOrmRepository) {
+    this.useCase = new PractitionerContactPointUseCase(repo);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Buscar todos los contactos activos' })
+  findAll() {
+    return this.useCase.findAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar contacto activo por id' })
+  @ApiParam({ name: 'id', type: Number })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.useCase.findById(id);
+    if (!result) throw new NotFoundException(`Contacto no encontrado: ${id}`);
+    return result;
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Crear contacto de practitioner' })
+  create(@Body() dto: CreatePractitionerContactPointDto) {
+    return this.useCase.create(dto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Actualizar contacto de practitioner' })
+  @ApiParam({ name: 'id', type: Number })
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePractitionerContactPointDto) {
+    const result = await this.useCase.update(id, { ...dto, date_modify: new Date() });
+    if (!result) throw new NotFoundException(`Contacto no encontrado: ${id}`);
+    return result;
+  }
+
+  @Patch(':id/estado')
+  @ApiOperation({ summary: 'Cambiar estado (activar/desactivar) de un contacto' })
+  @ApiParam({ name: 'id', type: Number })
+  async setActive(@Param('id', ParseIntPipe) id: number, @Body() dto: SetActiveDto) {
+    const result = await this.useCase.setActive(id, dto.is_active === 1, dto.user_modify);
+    if (!result) throw new NotFoundException(`Contacto no encontrado: ${id}`);
+    return result;
+  }
 }

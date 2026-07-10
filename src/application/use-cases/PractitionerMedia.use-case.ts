@@ -4,7 +4,12 @@ import { PractitionerMediaRepository } from '../../domain/repositories/Practitio
 export class PractitionerMediaUseCase {
   constructor(private readonly repo: PractitionerMediaRepository) {}
   findAll(): Promise<PractitionerMedia[]> { return this.repo.findAll(); }
-  findById(id: string): Promise<PractitionerMedia | null> { return this.repo.findById(id); }
+  findById(id: number): Promise<PractitionerMedia | null> { return this.repo.findById(id); }
   create(data: Partial<PractitionerMedia>): Promise<PractitionerMedia> { return this.repo.save(data as PractitionerMedia); }
-  delete(id: string): Promise<void> { return this.repo.delete(id); }
+  update(id: number, data: Partial<PractitionerMedia>): Promise<PractitionerMedia | null> {
+    return this.repo.update(id, data);
+  }
+  setActive(id: number, isActive: boolean, userModify: string): Promise<PractitionerMedia | null> {
+    return this.repo.setActive(id, isActive, userModify);
+  }
 }
