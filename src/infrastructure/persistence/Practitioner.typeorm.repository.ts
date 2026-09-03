@@ -158,7 +158,17 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
       LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
       WHERE p.is_active = 1 AND p.active_fhir = 1
         AND (@0 IS NULL OR s.speciality_id = @0)
-        AND (@1 IS NULL OR s.local_name LIKE '%' + @1 + '%')
+        AND (@1 IS NULL OR EXISTS (
+          -- Busca el termino contra TODAS las traducciones activas de la especialidad
+          -- (es/en hoy, cualquier locale futuro sin tocar esta query), no solo local_name (es).
+          -- Cubre el caso "el usuario busca 'Cardiology' en ingles" aunque el request no mande
+          -- ese Accept-Language -- independiente del locale del request.
+          SELECT 1 FROM catalog.translation t
+          WHERE t.entity_schema = 'catalog' AND t.entity_table = 'speciality'
+            AND t.entity_id = s.speciality_id AND t.field_name = 'display_name'
+            AND t.is_active = 1
+            AND t.value LIKE '%' + @1 + '%'
+        ))
       ORDER BY s.local_name, p.name_family, p.name_given
     `, [specialityId ?? null, localName ?? null]);
     return rows.map((row) => ({ ...row, speciality_display: this.resolveByLocale(row.speciality_local_name, row.speciality_fhir_display, locale) }));
