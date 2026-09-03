@@ -5,6 +5,7 @@ import { PractitionerUseCase } from '../../application/use-cases/Practitioner.us
 import { CreatePractitionerDto } from '../../dto/create-Practitioner.dto';
 import { UpdatePractitionerDto } from '../../dto/update-Practitioner.dto';
 import { SetActiveDto } from '../../dto/set-active.dto';
+import { Locale } from '../decorators/Locale.decorator';
 
 @ApiTags('practitioner')
 @Controller('practitioner')
@@ -57,8 +58,8 @@ export class PractitionerController {
   @Get('by-username/:adUsername')
   @ApiOperation({ summary: 'Obtener practitioner por AD username (Home login)' })
   @ApiParam({ name: 'adUsername', description: 'AD username del medico autenticado' })
-  async findByAdUsername(@Param('adUsername') adUsername: string) {
-    const result = await this.repo.findByAdUsername(adUsername);
+  async findByAdUsername(@Param('adUsername') adUsername: string, @Locale() locale: string) {
+    const result = await this.repo.findByAdUsername(adUsername, locale);
     if (!result) throw new NotFoundException(`Practitioner no encontrado: ${adUsername}`);
     return result;
   }
@@ -68,12 +69,14 @@ export class PractitionerController {
   @ApiQuery({ name: 'specialityId', required: false, type: Number })
   @ApiQuery({ name: 'localName', required: false, type: String })
   findBySpeciality(
-    @Query('specialityId') specialityId?: string,
-    @Query('localName') localName?: string,
+    @Query('specialityId') specialityId: string | undefined,
+    @Query('localName') localName: string | undefined,
+    @Locale() locale: string,
   ) {
     return this.repo.findBySpeciality(
       specialityId != null ? Number(specialityId) : undefined,
       localName,
+      locale,
     );
   }
 
@@ -87,8 +90,8 @@ export class PractitionerController {
   @Get(':uuid')
   @ApiOperation({ summary: 'Obtener practitioner por UUID FHIR' })
   @ApiParam({ name: 'uuid', description: 'FHIR UUID del practitioner' })
-  async findByUuid(@Param('uuid') uuid: string) {
-    const result = await this.repo.findByUuid(uuid);
+  async findByUuid(@Param('uuid') uuid: string, @Locale() locale: string) {
+    const result = await this.repo.findByUuid(uuid, locale);
     if (!result) throw new NotFoundException(`Practitioner no encontrado: ${uuid}`);
     return result;
   }

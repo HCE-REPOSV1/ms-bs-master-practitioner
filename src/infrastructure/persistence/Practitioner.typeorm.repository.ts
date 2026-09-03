@@ -34,7 +34,7 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
     return this.repo.findOne({ where: { practitioner_id: id } as any });
   }
 
-  async findByAdUsername(adUsername: string): Promise<PractitionerByAdUsernameResult | null> {
+  async findByAdUsername(adUsername: string, locale: string): Promise<PractitionerByAdUsernameResult | null> {
     const rows = await this.dataSource.query<PractitionerByAdUsernameResult[]>(`
       SELECT
           p.practitioner_uuid,
@@ -44,6 +44,7 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
           p.name_family,
           p.name_text,
           p.gender,
+          ISNULL(tgender_loc.value, ISNULL(tgender_es.value, gender_v.display)) AS gender_display,
           p.communication_language,
           pr.role_id,
           pr.role_uuid,
@@ -74,12 +75,19 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
       LEFT JOIN  organisation.location            l  ON l.location_id      = pr.location_id    AND l.is_active  = 1
       LEFT JOIN  practitioner.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
       LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
+      LEFT JOIN  catalog.code_system              cs_gender ON cs_gender.code_system_code = 'GENDER'
+      LEFT JOIN  catalog.code_system_value        gender_v ON gender_v.code_system_id = cs_gender.code_system_id AND gender_v.code = p.gender AND gender_v.is_active = 1
+      LEFT JOIN  catalog.translation              tgender_loc ON tgender_loc.entity_schema = 'catalog' AND tgender_loc.entity_table = 'code_system_value'
+        AND tgender_loc.entity_id = gender_v.value_id AND tgender_loc.field_name = 'display' AND tgender_loc.locale = @1 AND tgender_loc.is_active = 1
+      LEFT JOIN  catalog.translation              tgender_es ON tgender_es.entity_schema = 'catalog' AND tgender_es.entity_table = 'code_system_value'
+        AND tgender_es.entity_id = gender_v.value_id AND tgender_es.field_name = 'display' AND tgender_es.locale = 'es' AND tgender_es.is_active = 1
       WHERE p.ad_username = @0 AND p.is_active = 1
-    `, [adUsername]);
-    return rows[0] ?? null;
+    `, [adUsername, locale]);
+    const row = rows[0] ?? null;
+    return row ? { ...row, speciality_display: this.resolveByLocale(row.speciality_local_name, row.speciality_fhir_display, locale) } : null;
   }
 
-  async findByUuid(practitionerUuid: string): Promise<PractitionerByUuidResult | null> {
+  async findByUuid(practitionerUuid: string, locale: string): Promise<PractitionerByUuidResult | null> {
     const rows = await this.dataSource.query<PractitionerByUuidResult[]>(`
       SELECT
           p.practitioner_uuid,
@@ -89,6 +97,7 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
           p.name_family,
           p.name_text,
           p.gender,
+          ISNULL(tgender_loc.value, ISNULL(tgender_es.value, gender_v.display)) AS gender_display,
           p.birth_date,
           p.communication_language,
           p.active_fhir,
@@ -111,13 +120,20 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
       INNER JOIN organisation.organisation        o  ON o.organisation_id  = pr.organisation_id AND o.is_active = 1
       LEFT JOIN  practitioner.practitioner_media  m  ON m.practitioner_id  = p.practitioner_id AND m.is_primary = 1 AND m.is_active = 1
       LEFT JOIN  cfg.file_server_config           fs ON fs.config_id       = m.file_server_config_id AND fs.is_active = 1
+      LEFT JOIN  catalog.code_system              cs_gender ON cs_gender.code_system_code = 'GENDER'
+      LEFT JOIN  catalog.code_system_value        gender_v ON gender_v.code_system_id = cs_gender.code_system_id AND gender_v.code = p.gender AND gender_v.is_active = 1
+      LEFT JOIN  catalog.translation              tgender_loc ON tgender_loc.entity_schema = 'catalog' AND tgender_loc.entity_table = 'code_system_value'
+        AND tgender_loc.entity_id = gender_v.value_id AND tgender_loc.field_name = 'display' AND tgender_loc.locale = @1 AND tgender_loc.is_active = 1
+      LEFT JOIN  catalog.translation              tgender_es ON tgender_es.entity_schema = 'catalog' AND tgender_es.entity_table = 'code_system_value'
+        AND tgender_es.entity_id = gender_v.value_id AND tgender_es.field_name = 'display' AND tgender_es.locale = 'es' AND tgender_es.is_active = 1
       WHERE p.practitioner_uuid = @0 AND p.is_active = 1
-    `, [practitionerUuid]);
-    return rows[0] ?? null;
+    `, [practitionerUuid, locale]);
+    const row = rows[0] ?? null;
+    return row ? { ...row, speciality_display: this.resolveByLocale(row.speciality_local_name, row.speciality_fhir_display, locale) } : null;
   }
 
-  async findBySpeciality(specialityId?: number, localName?: string): Promise<PractitionerBySpecialityResult[]> {
-    return this.dataSource.query<PractitionerBySpecialityResult[]>(`
+  async findBySpeciality(specialityId: number | undefined, localName: string | undefined, locale: string): Promise<PractitionerBySpecialityResult[]> {
+    const rows = await this.dataSource.query<PractitionerBySpecialityResult[]>(`
       SELECT
           p.practitioner_uuid,
           p.name_prefix,
@@ -145,6 +161,13 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
         AND (@1 IS NULL OR s.local_name LIKE '%' + @1 + '%')
       ORDER BY s.local_name, p.name_family, p.name_given
     `, [specialityId ?? null, localName ?? null]);
+    return rows.map((row) => ({ ...row, speciality_display: this.resolveByLocale(row.speciality_local_name, row.speciality_fhir_display, locale) }));
+  }
+
+  /** Fallback locale -> 'es' -> el otro idioma, mismo criterio de TranslationEnricher.attach(..., locale). */
+  private resolveByLocale(es: string | null, en: string | null, locale: string): string | null {
+    if (locale === 'en') return en ?? es ?? null;
+    return es ?? en ?? null;
   }
 
   async findContactAndAddress(practitionerUuid: string): Promise<PractitionerContactAndAddressResult> {

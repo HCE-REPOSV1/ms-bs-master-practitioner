@@ -8,6 +8,8 @@ export interface PractitionerByAdUsernameResult {
   name_family: string;
   name_text: string | null;
   gender: string | null;
+  /** Texto de catalog.code_system_value (code_system GENDER) resuelto en el locale pedido, fallback a 'es'. */
+  gender_display: string | null;
   communication_language: string | null;
   role_id: number;
   role_uuid: string;
@@ -19,6 +21,8 @@ export interface PractitionerByAdUsernameResult {
   speciality_fhir_code: string | null;
   speciality_fhir_display: string | null;
   speciality_local_name: string;
+  /** Especialidad resuelta segun locale (fallback a es) — deriva de speciality_local_name/speciality_fhir_display. */
+  speciality_display: string | null;
   organisation_uuid: string;
   organisation_name: string;
   location_uuid: string | null;
@@ -41,6 +45,8 @@ export interface PractitionerByUuidResult {
   name_family: string;
   name_text: string | null;
   gender: string | null;
+  /** Texto de catalog.code_system_value (code_system GENDER) resuelto en el locale pedido, fallback a 'es'. */
+  gender_display: string | null;
   birth_date: Date | null;
   communication_language: string | null;
   active_fhir: boolean;
@@ -52,6 +58,8 @@ export interface PractitionerByUuidResult {
   speciality_fhir_code: string | null;
   speciality_fhir_display: string | null;
   speciality_local_name: string;
+  /** Especialidad resuelta segun locale (fallback a es) — deriva de speciality_local_name/speciality_fhir_display. */
+  speciality_display: string | null;
   organisation_uuid: string;
   organisation_name: string;
   photo_file_name: string | null;
@@ -68,6 +76,8 @@ export interface PractitionerBySpecialityResult {
   speciality_id: number;
   speciality_local_name: string;
   speciality_fhir_display: string | null;
+  /** Especialidad resuelta segun locale (fallback a es) — deriva de speciality_local_name/speciality_fhir_display. */
+  speciality_display: string | null;
   organisation_uuid: string;
   organisation_name: string;
   role_code: string;
@@ -117,8 +127,8 @@ export interface PractitionerRepository {
   findAll(): Promise<Practitioner[]>;
   update(id: number, data: Partial<Practitioner>): Promise<Practitioner | null>;
   setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null>;
-  findByAdUsername(adUsername: string): Promise<PractitionerByAdUsernameResult | null>;
-  findByUuid(practitionerUuid: string): Promise<PractitionerByUuidResult | null>;
-  findBySpeciality(specialityId?: number, localName?: string): Promise<PractitionerBySpecialityResult[]>;
+  findByAdUsername(adUsername: string, locale: string): Promise<PractitionerByAdUsernameResult | null>;
+  findByUuid(practitionerUuid: string, locale: string): Promise<PractitionerByUuidResult | null>;
+  findBySpeciality(specialityId: number | undefined, localName: string | undefined, locale: string): Promise<PractitionerBySpecialityResult[]>;
   findContactAndAddress(practitionerUuid: string): Promise<PractitionerContactAndAddressResult>;
 }
