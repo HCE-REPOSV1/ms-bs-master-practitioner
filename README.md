@@ -13,105 +13,16 @@ BFF Negocio (Lógica de negocio)
 - **Auth**: none
 - **API Docs**: Swagger UI (`/api/docs`)
 
-## Dominio: hce_core
+## Dominio
 
-### FileServerConfig
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| config_id | number | ✓ |
-| profile_name | string | ✓ |
-| base_url | string | ✓ |
-| is_default | boolean | ✓ |
-| config_description | string | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### TenantIdentity
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| tenant_identity_id | number | ✓ |
-| tenant_uuid | string | ✓ |
-| tenant_code | string | ✓ |
-| tenant_name | string | ✓ |
-| country_code | string | ✓ |
-| timezone | string | ✓ |
-| fhir_version | string | ✓ |
-| environment | string | ✓ |
-| system_version | string | ✓ |
-| provisioned_at | Date | ✓ |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### Organisation
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| organisation_id | number | ✓ |
-| organisation_uuid | string | ✓ |
-| legacy_id | string | — |
-| organisation_name | string | ✓ |
-| type_code | string | — |
-| type_display | string | — |
-| active_fhir | boolean | ✓ |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### Speciality
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| speciality_id | number | ✓ |
-| fhir_code | string | ✓ |
-| fhir_system | string | ✓ |
-| fhir_display | string | ✓ |
-| local_name | string | ✓ |
-| legacy_speciality_id | string | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### Location
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| location_id | number | ✓ |
-| location_uuid | string | ✓ |
-| organisation_id | number | ✓ |
-| identifier_value | string | — |
-| location_status | string | ✓ |
-| location_name | string | ✓ |
-| location_alias | string | — |
-| location_description | string | — |
-| location_mode | string | ✓ |
-| type_code | string | — |
-| type_display | string | — |
-| physical_type_code | string | — |
-| physical_type_display | string | — |
-| address_line_1 | string | — |
-| address_line_2 | string | — |
-| address_city | string | — |
-| address_district | string | — |
-| address_state | string | — |
-| address_postal_code | string | — |
-| address_country | string | ✓ |
-| position_longitude | number | — |
-| position_latitude | number | — |
-| telecom_phone | string | — |
-| telecom_email | string | — |
-| legacy_location_id | string | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
+Este microservicio (nombre interno `ms-bs-practitioner-service`) implementa el submódulo `practitioner`
+del esquema `hce_core`: gestiona el **profesional de salud** (`Practitioner`, con sus flags FHIR
+`is_physician`/`is_nurse` y el login por AD `ad_username`) y sus entidades hijas — direcciones, puntos de
+contacto, identificadores (DNI/CMP/RNE), archivos multimedia, roles asignados por sede/especialidad,
+servicios/departamentos y el mapeo de especialidades. No expone ni persiste localmente ninguna otra
+entidad de `hce_core` (`Location`, `Organisation`, `Speciality`, etc.) — `organisation_id`, `location_id`,
+`speciality_id` y `file_server_config_id` son solo IDs foráneos hacia otros microservicios/catálogos del
+dominio, sin relación TypeORM ni tabla local aquí.
 
 ### Practitioner
 | Campo | Tipo | Requerido |
@@ -119,18 +30,108 @@ BFF Negocio (Lógica de negocio)
 | practitioner_id | number | ✓ |
 | practitioner_uuid | string | ✓ |
 | ad_username | string | ✓ |
-| identifier_value | string | — |
-| identifier_system | string | — |
-| identifier_type_code | string | — |
 | name_family | string | ✓ |
+| name_fathers_family | string | — |
+| name_mothers_family | string | — |
 | name_given | string | ✓ |
 | name_prefix | string | — |
 | name_suffix | string | — |
+| name_text | string | — (columna calculada en BD, solo lectura) |
 | gender | string | — |
-| birth_date | Date | — |
+| birth_date | string (`date`) | — |
 | active_fhir | boolean | ✓ |
-| communication_language | string | — |
+| communication_language | string | — (default `es`) |
 | legacy_practitioner_id | string | — |
+| practitioner_status_id | number | — (FK lógica a `catalog.practitioner_status`, resuelta por aplicación) |
+| is_physician | boolean | ✓ |
+| is_nurse | boolean | ✓ |
+| source_system_code | string | — |
+| last_integration_datetime | Date | — |
+| user_create | string | ✓ |
+| user_modify | string | — |
+| date_create | Date | ✓ |
+| date_modify | Date | — |
+| is_active | boolean | ✓ |
+
+### PractitionerAddress
+| Campo | Tipo | Requerido |
+|-------|------|----------|
+| address_id | number | ✓ |
+| practitioner_id | number | ✓ |
+| address_use | string | ✓ (default `work`) |
+| address_type | string | ✓ (default `physical`) |
+| address_text | string | — |
+| address_line_1 | string | — |
+| address_line_2 | string | — |
+| address_city | string | — |
+| address_district | string | — |
+| address_state | string | — |
+| address_postal_code | string | — |
+| address_country | string | ✓ (default `PE`) |
+| period_start | string (`date`) | — |
+| period_end | string (`date`) | — |
+| user_create | string | ✓ |
+| user_modify | string | — |
+| date_create | Date | ✓ |
+| date_modify | Date | — |
+| is_active | boolean | ✓ |
+
+### PractitionerContactPoint
+| Campo | Tipo | Requerido |
+|-------|------|----------|
+| contact_point_id | number | ✓ |
+| practitioner_id | number | ✓ |
+| contact_system | string | ✓ |
+| contact_value | string | ✓ |
+| contact_use | string | — (default `work`) |
+| contact_rank | number | — (default `1`) |
+| period_start | string (`date`) | — |
+| period_end | string (`date`) | — |
+| user_create | string | ✓ |
+| user_modify | string | — |
+| date_create | Date | ✓ |
+| date_modify | Date | — |
+| is_active | boolean | ✓ |
+
+### PractitionerIdentifier
+| Campo | Tipo | Requerido |
+|-------|------|----------|
+| identifier_id | number | ✓ |
+| practitioner_id | number | ✓ |
+| identifier_use | string | ✓ (default `official`, FHIR `Identifier.use`) |
+| identifier_type_code | string | ✓ (`DN` \| `CMP` \| `RNE`, CHECK constraint en BD) |
+| identifier_type_system | string | ✓ (default `http://terminology.hl7.org/CodeSystem/v2-0203`) |
+| identifier_type_display | string | — |
+| identifier_system | string | ✓ |
+| identifier_value | string | ✓ |
+| period_start | string (`date`) | — |
+| period_end | string (`date`) | — |
+| user_create | string | ✓ |
+| user_modify | string | — |
+| date_create | Date | ✓ |
+| date_modify | Date | — |
+| is_active | boolean | ✓ |
+
+### PractitionerMedia
+| Campo | Tipo | Requerido |
+|-------|------|----------|
+| media_id | number | ✓ |
+| practitioner_id | number | ✓ |
+| file_server_config_id | number | ✓ |
+| fhir_status | string | ✓ (default `completed`) |
+| fhir_media_type | string | ✓ (default `image`) |
+| media_category | string | ✓ (default `profile_photo`) |
+| content_type | string | ✓ (default `image/jpeg`) |
+| media_file_name | string | ✓ |
+| relative_path | string | ✓ |
+| media_title | string | — |
+| file_size_bytes | string (`bigint`) | — |
+| file_hash | string | — |
+| hash_algorithm | string | — (default `SHA-256`) |
+| width_pixels | number | — |
+| height_pixels | number | — |
+| is_primary | boolean | ✓ |
+| attachment_date | Date | — |
 | user_create | string | ✓ |
 | user_modify | string | — |
 | date_create | Date | ✓ |
@@ -146,10 +147,10 @@ BFF Negocio (Lógica de negocio)
 | organisation_id | number | ✓ |
 | speciality_id | number | ✓ |
 | location_id | number | — |
-| role_code | string | — |
+| role_code | string | — (default `doctor`) |
 | role_display | string | — |
-| period_start | Date | — |
-| period_end | Date | — |
+| period_start | string (`date`) | — |
+| period_end | string (`date`) | — |
 | active_fhir | boolean | ✓ |
 | user_create | string | ✓ |
 | user_modify | string | — |
@@ -157,103 +158,28 @@ BFF Negocio (Lógica de negocio)
 | date_modify | Date | — |
 | is_active | boolean | ✓ |
 
-### PractitionerAddress
+### PractitionerService
 | Campo | Tipo | Requerido |
 |-------|------|----------|
-| address_id | number | ✓ |
+| practitioner_service_id | number | ✓ |
+| practitioner_service_uuid | string | ✓ |
 | practitioner_id | number | ✓ |
-| address_use | string | ✓ |
-| address_type | string | ✓ |
-| address_text | string | — |
-| address_line_1 | string | — |
-| address_line_2 | string | — |
-| address_city | string | — |
-| address_district | string | — |
-| address_state | string | — |
-| address_postal_code | string | — |
-| address_country | string | ✓ |
-| period_start | Date | — |
-| period_end | Date | — |
+| service_code | string | ✓ (sin catálogo formal — varchar libre, deuda técnica ya documentada en V2) |
+| service_name | string | — |
 | user_create | string | ✓ |
 | user_modify | string | — |
 | date_create | Date | ✓ |
 | date_modify | Date | — |
 | is_active | boolean | ✓ |
 
-### PractitionerContactPoint
+### PractitionerSpecialtyMap
 | Campo | Tipo | Requerido |
 |-------|------|----------|
-| contact_point_id | number | ✓ |
+| practitioner_specialty_id | number | ✓ |
+| practitioner_specialty_uuid | string | ✓ |
 | practitioner_id | number | ✓ |
-| contact_system | string | ✓ |
-| contact_value | string | ✓ |
-| contact_use | string | — |
-| contact_rank | number | — |
-| period_start | Date | — |
-| period_end | Date | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### PractitionerMedia
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| media_id | number | ✓ |
-| practitioner_id | number | ✓ |
-| file_server_config_id | number | ✓ |
-| content_type | string | ✓ |
-| media_file_name | string | ✓ |
-| relative_path | string | ✓ |
-| media_type | string | ✓ |
-| media_title | string | — |
-| file_size_bytes | number | — |
-| file_hash | string | — |
+| speciality_id | number | ✓ (FK lógica a `catalog.speciality`, resuelta por aplicación) |
 | is_primary | boolean | ✓ |
-| attachment_date | Date | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### DomainEventOutbox
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| event_id | number | ✓ |
-| event_uuid | string | ✓ |
-| event_type | string | ✓ |
-| aggregate_type | string | ✓ |
-| aggregate_id | string | ✓ |
-| event_payload | string | ✓ |
-| event_status | string | ✓ |
-| occurred_at | Date | ✓ |
-| processed_at | Date | — |
-| retry_count | number | ✓ |
-| last_error | string | — |
-| user_create | string | ✓ |
-| user_modify | string | — |
-| date_create | Date | ✓ |
-| date_modify | Date | — |
-| is_active | boolean | ✓ |
-
-### LegacySyncLog
-| Campo | Tipo | Requerido |
-|-------|------|----------|
-| sync_log_id | number | ✓ |
-| event_uuid | string | — |
-| sync_direction | string | ✓ |
-| entity_type | string | ✓ |
-| entity_id_hce | string | — |
-| entity_id_legacy | string | — |
-| sync_operation | string | ✓ |
-| sync_result | string | ✓ |
-| result_detail | string | — |
-| payload_sent | string | — |
-| payload_received | string | — |
-| sync_started_at | Date | ✓ |
-| sync_finished_at | Date | — |
 | user_create | string | ✓ |
 | user_modify | string | — |
 | date_create | Date | ✓ |
@@ -262,66 +188,72 @@ BFF Negocio (Lógica de negocio)
 
 ## Endpoints
 
-- `GET    /FileServerConfigs` — Listar
-- `GET    /FileServerConfigs/:id` — Obtener
-- `POST   /FileServerConfigs` — Crear
-- `PUT    /FileServerConfigs/:id` — Actualizar
-- `DELETE /FileServerConfigs/:id` — Eliminar
-- `GET    /TenantIdentitys` — Listar
-- `GET    /TenantIdentitys/:id` — Obtener
-- `POST   /TenantIdentitys` — Crear
-- `PUT    /TenantIdentitys/:id` — Actualizar
-- `DELETE /TenantIdentitys/:id` — Eliminar
-- `GET    /Organisations` — Listar
-- `GET    /Organisations/:id` — Obtener
-- `POST   /Organisations` — Crear
-- `PUT    /Organisations/:id` — Actualizar
-- `DELETE /Organisations/:id` — Eliminar
-- `GET    /Specialitys` — Listar
-- `GET    /Specialitys/:id` — Obtener
-- `POST   /Specialitys` — Crear
-- `PUT    /Specialitys/:id` — Actualizar
-- `DELETE /Specialitys/:id` — Eliminar
-- `GET    /Locations` — Listar
-- `GET    /Locations/:id` — Obtener
-- `POST   /Locations` — Crear
-- `PUT    /Locations/:id` — Actualizar
-- `DELETE /Locations/:id` — Eliminar
-- `GET    /Practitioners` — Listar
-- `GET    /Practitioners/:id` — Obtener
-- `POST   /Practitioners` — Crear
-- `PUT    /Practitioners/:id` — Actualizar
-- `DELETE /Practitioners/:id` — Eliminar
-- `GET    /PractitionerRoles` — Listar
-- `GET    /PractitionerRoles/:id` — Obtener
-- `POST   /PractitionerRoles` — Crear
-- `PUT    /PractitionerRoles/:id` — Actualizar
-- `DELETE /PractitionerRoles/:id` — Eliminar
-- `GET    /PractitionerAddresss` — Listar
-- `GET    /PractitionerAddresss/:id` — Obtener
-- `POST   /PractitionerAddresss` — Crear
-- `PUT    /PractitionerAddresss/:id` — Actualizar
-- `DELETE /PractitionerAddresss/:id` — Eliminar
-- `GET    /PractitionerContactPoints` — Listar
-- `GET    /PractitionerContactPoints/:id` — Obtener
-- `POST   /PractitionerContactPoints` — Crear
-- `PUT    /PractitionerContactPoints/:id` — Actualizar
-- `DELETE /PractitionerContactPoints/:id` — Eliminar
-- `GET    /PractitionerMedias` — Listar
-- `GET    /PractitionerMedias/:id` — Obtener
-- `POST   /PractitionerMedias` — Crear
-- `PUT    /PractitionerMedias/:id` — Actualizar
-- `DELETE /PractitionerMedias/:id` — Eliminar
-- `GET    /DomainEventOutboxs` — Listar
-- `GET    /DomainEventOutboxs/:id` — Obtener
-- `POST   /DomainEventOutboxs` — Crear
-- `PUT    /DomainEventOutboxs/:id` — Actualizar
-- `DELETE /DomainEventOutboxs/:id` — Eliminar
-- `GET    /LegacySyncLogs` — Listar
-- `GET    /LegacySyncLogs/:id` — Obtener
-- `POST   /LegacySyncLogs` — Crear
-- `PUT    /LegacySyncLogs/:id` — Actualizar
-- `DELETE /LegacySyncLogs/:id` — Eliminar
+> Rutas reales con prefijo global `api` + versión: `/api/v1/...` (`app.setGlobalPrefix('api', { exclude: ['health'] })`
+> + `app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1', prefix: 'v' })` en `main.ts`).
+> `/health` está excluido del prefijo `api` y es version-neutral. Ningún controller usa `@UseGuards`.
+
+### Practitioner — `/practitioner`
+- `GET    /practitioner` — Buscar todos los practitioners activos
+- `GET    /practitioner/by-id/:id` — Buscar practitioner activo por id numérico interno
+- `POST   /practitioner` — Crear practitioner
+- `PUT    /practitioner/by-id/:id` — Actualizar practitioner
+- `PATCH  /practitioner/by-id/:id/estado` — Cambiar estado (activar/desactivar) de un practitioner
+- `GET    /practitioner/by-username/:adUsername` — Obtener practitioner por AD username (Home login)
+- `GET    /practitioner/by-speciality?specialityId=&localName=` — Listar médicos por especialidad
+- `GET    /practitioner/:uuid/contact-and-address` — Obtener contactos y direcciones de un médico (FHIR UUID)
+- `GET    /practitioner/:uuid` — Obtener practitioner por UUID FHIR
+
+### PractitionerAddress — `/practitioner/addresses`
+- `GET    /practitioner/addresses` — Buscar todas las direcciones activas
+- `GET    /practitioner/addresses/:id` — Buscar dirección activa por id
+- `POST   /practitioner/addresses` — Crear dirección de practitioner
+- `PUT    /practitioner/addresses/:id` — Actualizar dirección de practitioner
+- `PATCH  /practitioner/addresses/:id/estado` — Cambiar estado (activar/desactivar) de una dirección
+
+### PractitionerContactPoint — `/practitioner/contact-points`
+- `GET    /practitioner/contact-points` — Buscar todos los contactos activos
+- `GET    /practitioner/contact-points/:id` — Buscar contacto activo por id
+- `POST   /practitioner/contact-points` — Crear contacto de practitioner
+- `PUT    /practitioner/contact-points/:id` — Actualizar contacto de practitioner
+- `PATCH  /practitioner/contact-points/:id/estado` — Cambiar estado (activar/desactivar) de un contacto
+
+### PractitionerIdentifier — `/practitioner/identifiers`
+- `GET    /practitioner/identifiers` — Buscar todos los identificadores activos
+- `GET    /practitioner/identifiers/:id` — Buscar identificador activo por id
+- `POST   /practitioner/identifiers` — Crear identificador de practitioner (CMP/DNI/pasaporte)
+- `PUT    /practitioner/identifiers/:id` — Actualizar identificador de practitioner
+- `PATCH  /practitioner/identifiers/:id/estado` — Cambiar estado (activar/desactivar) de un identificador
+
+### PractitionerMedia — `/practitioner/media`
+- `GET    /practitioner/media` — Buscar toda la metadata de media activa (el archivo binario lo sirve `ms-tch-media`)
+- `GET    /practitioner/media/:id` — Buscar metadata de media activa por id
+- `POST   /practitioner/media` — Registrar metadata de un archivo de practitioner
+- `PUT    /practitioner/media/:id` — Actualizar metadata de un archivo de practitioner
+- `PATCH  /practitioner/media/:id/estado` — Cambiar estado (activar/desactivar) de un archivo
+
+### PractitionerRole — `/practitioner/roles`
+- `GET    /practitioner/roles` — Buscar todos los roles activos
+- `GET    /practitioner/roles/:id` — Buscar rol activo por id
+- `POST   /practitioner/roles` — Crear rol de practitioner
+- `PUT    /practitioner/roles/:id` — Actualizar rol de practitioner
+- `PATCH  /practitioner/roles/:id/estado` — Cambiar estado (activar/desactivar) de un rol
+
+### PractitionerService — `/practitioner/services`
+- `GET    /practitioner/services` — Buscar todos los servicios/departamentos activos del practitioner
+- `GET    /practitioner/services/:id` — Buscar servicio activo por id
+- `POST   /practitioner/services` — Asignar servicio/departamento a un practitioner
+- `PUT    /practitioner/services/:id` — Actualizar servicio/departamento del practitioner
+- `PATCH  /practitioner/services/:id/estado` — Cambiar estado (activar/desactivar) de un servicio
+
+### PractitionerSpecialtyMap — `/practitioner/specialty-map`
+- `GET    /practitioner/specialty-map` — Buscar todas las especialidades activas asignadas a practitioners
+- `GET    /practitioner/specialty-map/:id` — Buscar asignación de especialidad activa por id
+- `POST   /practitioner/specialty-map` — Asignar especialidad (credencial) a un practitioner
+- `PUT    /practitioner/specialty-map/:id` — Actualizar asignación de especialidad del practitioner
+- `PATCH  /practitioner/specialty-map/:id/estado` — Cambiar estado (activar/desactivar) de una asignación de especialidad
+
+### Health
+- `GET    /health` — Health check (version-neutral, sin prefijo `/api`)
 
 ## Cómo ejecutar
 
@@ -334,6 +266,8 @@ npm install
 # Copiar .env.example a .env y completar los valores
 npm run start:dev
 ```
+
+Swagger disponible en `http://localhost:10405/api/docs` (solo fuera de producción).
 
 ### Local con Docker
 
@@ -350,24 +284,52 @@ docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml down
 ```
 
-### Producción
+### Producción (con Vault)
 
-El `docker-compose.yml` lee los secretos desde Vault al arrancar. No se necesita `.env` en el servidor.
+El `docker-compose.yml` lee los secretos directamente de Vault al arrancar. **No se necesita `.env`.**
 
-**Requisito:** Vault corriendo en `192.168.42.44:8200` (ver [HCE-vault-config](../HCE-vault-config/README.md)).
+**Requisito:** Vault corriendo (ver [HCE-vault-config](../HCE-vault-config/README.md)).
+
+#### Paso 1 — Obtener el token
+
+El archivo `HCE-vault-config/.env` tiene la línea:
+```
+TOKEN_PRACTITIONER_SERVICE=hvs.CAESIDsn...
+```
+Copia ese valor.
+
+#### Paso 2 — Crear `.env.docker` con el token
+
+Este archivo tiene **una sola línea** con el token de bootstrap. No contiene secretos de la app — esos vienen del vault.
+
+**PowerShell (Windows):**
+```powershell
+"VAULT_TOKEN=hvs.CAESIDsn..." | Out-File -Encoding utf8 .env.docker
+```
+
+**Bash / Linux / Mac:**
+```bash
+echo "VAULT_TOKEN=hvs.CAESIDsn..." > .env.docker
+```
+
+> `.env.docker` está en `.gitignore` — nunca se commitea.
+> Si el init regenera los tokens, actualizar este archivo con el nuevo valor de `TOKEN_PRACTITIONER_SERVICE`.
+
+#### Paso 3 — Levantar
 
 ```bash
-# El token está en HCE-vault-config/.env como TOKEN_PRACTITIONER_SERVICE
-export VAULT_TOKEN=hvs.xxxx
-
 docker compose down
 docker compose build
 docker compose up -d
 ```
 
-Al arrancar, `entrypoint.sh` obtiene `DB_PASS`, `DB_HOST`, `KAFKA_BROKER` y el resto de Vault. El app no sabe que existe Vault.
+Funciona igual en PowerShell, CMD y bash — sin exportar nada.
 
-Con GitHub Actions el token se pasa como variable de entorno desde GitHub Secrets (`TOKEN_PRACTITIONER_SERVICE`).
+Al arrancar, `entrypoint.sh` se conecta al Vault con ese token (secret path `hce/nestjs/bs-master-practitioner`),
+descarga todos los secretos (`DB_PASS`, `DB_HOST`, `KAFKA_BROKER`, etc.) y los inyecta como variables de
+entorno en el contenedor. La aplicación no sabe que existe Vault.
+
+Con GitHub Actions el token se pasa automáticamente desde GitHub Secrets (`TOKEN_PRACTITIONER_SERVICE`).
 
 ---
 
@@ -377,10 +339,4 @@ Con GitHub Actions el token se pasa como variable de entorno desde GitHub Secret
 npm run start:dev   # desarrollo con hot-reload
 npm run build       # compilar TypeScript
 npm run start:prod  # ejecutar build
-npm run test        # tests unitarios
-npm run test:cov    # cobertura
 ```
-
-## Swagger UI
-
-Disponible en: `http://localhost:3000/api/docs`
