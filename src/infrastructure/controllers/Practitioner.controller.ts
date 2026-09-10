@@ -2,18 +2,22 @@ import { Controller, Get, Post, Put, Patch, Param, Query, Body, NotFoundExceptio
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PractitionerTypeOrmRepository } from '../persistence/Practitioner.typeorm.repository';
 import { PractitionerUseCase } from '../../application/use-cases/Practitioner.use-case';
+import { SyncPractitionerFromLegacyUseCase } from '../../application/use-cases/SyncPractitionerFromLegacy.use-case';
 import { CreatePractitionerDto } from '../../dto/create-Practitioner.dto';
 import { UpdatePractitionerDto } from '../../dto/update-Practitioner.dto';
 import { SetActiveDto } from '../../dto/set-active.dto';
+import { SyncPractitionerFromLegacyDto } from '../../dto/sync-practitioner-from-legacy.dto';
 import { Locale } from '../decorators/Locale.decorator';
 
 @ApiTags('practitioner')
 @Controller('practitioner')
 export class PractitionerController {
   private readonly useCase: PractitionerUseCase;
+  private readonly syncUseCase: SyncPractitionerFromLegacyUseCase;
 
   constructor(private readonly repo: PractitionerTypeOrmRepository) {
     this.useCase = new PractitionerUseCase(repo);
+    this.syncUseCase = new SyncPractitionerFromLegacyUseCase(repo);
   }
 
   @Get()
@@ -35,6 +39,19 @@ export class PractitionerController {
   @ApiOperation({ summary: 'Crear practitioner' })
   create(@Body() dto: CreatePractitionerDto) {
     return this.useCase.create(dto as any);
+  }
+
+  @Post('sync')
+  @ApiOperation({
+    summary: 'Receptor CDC — sincroniza un medico desde clinica (dbo.medicos)',
+    description:
+      'Ultimo tramo del pipeline CDC nativo SQL Server -> Debezium -> Kafka -> ' +
+      'ms-cnl-int-hce-integration -> integration.outbox. Este endpoint solo hace upsert ' +
+      'por legacy_practitioner_id (correlacion con dbo.medicos.codmedico), con merge ' +
+      'parcial en update (no pisa campos que el evento no trae).',
+  })
+  syncFromLegacy(@Body() dto: SyncPractitionerFromLegacyDto) {
+    return this.syncUseCase.sync(dto);
   }
 
   @Put('by-id/:id')

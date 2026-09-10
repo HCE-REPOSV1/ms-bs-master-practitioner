@@ -22,6 +22,11 @@ export class PractitionerTypeOrmRepository implements PractitionerRepository {
   findById(id: number): Promise<Practitioner | null> {
     return this.repo.findOne({ where: { practitioner_id: id, is_active: true } as any });
   }
+
+  findByLegacyPractitionerId(legacyPractitionerId: string): Promise<Practitioner | null> {
+    return this.repo.findOne({ where: { legacy_practitioner_id: legacyPractitionerId, is_active: true } as any });
+  }
+
   save(entity: Practitioner): Promise<Practitioner> { return this.repo.save(entity); }
 
   async update(id: number, data: Partial<Practitioner>): Promise<Practitioner | null> {

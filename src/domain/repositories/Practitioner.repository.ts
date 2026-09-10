@@ -125,6 +125,8 @@ export interface PractitionerRepository {
   save(entity: Practitioner): Promise<Practitioner>;
   findById(id: number): Promise<Practitioner | null>;
   findAll(): Promise<Practitioner[]>;
+  /** Correlacion con dbo.medicos.codmedico (clinica), para el upsert del sync CDC (POST /practitioner/sync). */
+  findByLegacyPractitionerId(legacyPractitionerId: string): Promise<Practitioner | null>;
   update(id: number, data: Partial<Practitioner>): Promise<Practitioner | null>;
   setActive(id: number, isActive: boolean, userModify: string): Promise<Practitioner | null>;
   findByAdUsername(adUsername: string, locale: string): Promise<PractitionerByAdUsernameResult | null>;
